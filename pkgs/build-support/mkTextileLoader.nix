@@ -18,16 +18,16 @@ let
 
   version = "${loaderName}-${loaderVersion}-${gameVersion}";
 
+  classPath = lib.concatStringsSep " " fetchedLibraries;
   manifest = writeText "${version}-manifest.mf" (lib.our.wrapJarManifest ''
     Manifest-Version: 1.0
     Main-Class: ${serverLaunch}
-    Class-Path: ${lib.concatStringsSep " " fetchedLibraries}
+    Class-Path: ${classPath}
   '');
 in
 stdenvNoCC.mkDerivation {
-  pname = "${loaderName}-server-launch.jar";
+  pname = "${loaderName}-server-launch";
   inherit version;
-  name = "${version}-server-launch.jar";
 
   nativeBuildInputs = [ jre_headless ];
 
@@ -41,8 +41,11 @@ stdenvNoCC.mkDerivation {
 
   installPhase = ''
     rm env-vars
-    jar cmvf ${manifest} "server.jar" .
-    cp server.jar "$out"
+    jar cmvf ${manifest} $out/lib/minecraft/launch.jar .
+
+    # Ensure Nix knows we depend on files listed in our class path.
+    mkdir $out/nix-support
+    echo ${classPath} > $out/nix-support/class-path
   '';
 
   phases = [ "buildPhase" "installPhase" ];
