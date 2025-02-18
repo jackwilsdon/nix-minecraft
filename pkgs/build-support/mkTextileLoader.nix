@@ -16,10 +16,8 @@ let
   lib_lock = lib.importJSON ./libraries.json;
   fetchedLibraries = lib.forEach libraries (l: "${fetchurl lib_lock.${l}}");
 
-  version = "${loaderName}-${loaderVersion}-${gameVersion}";
-
   classPath = lib.concatStringsSep " " fetchedLibraries;
-  manifest = writeText "${version}-manifest.mf" (lib.our.wrapJarManifest ''
+  manifest = writeText "manifest.mf" (lib.our.wrapJarManifest ''
     Manifest-Version: 1.0
     Main-Class: ${serverLaunch}
     Class-Path: ${classPath}
@@ -27,7 +25,7 @@ let
 in
 stdenvNoCC.mkDerivation {
   pname = "${loaderName}-server-launch";
-  inherit version;
+  version = "${loaderVersion}-${gameVersion}";
 
   nativeBuildInputs = [ jre_headless ];
 
